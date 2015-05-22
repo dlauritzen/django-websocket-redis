@@ -20,9 +20,9 @@ class WebsocketTests(LiveServerTestCase):
         cls.server_thread.httpd.set_app(application)
 
     def setUp(self):
-        self.facility = u'unittest'
-        self.websocket_base_url = self.live_server_url.replace('http:', 'ws:', 1) + u'/ws/' + self.facility
-        self.message = RedisMessage(''.join(unichr(c) for c in range(33, 128)))
+        self.facility = 'unittest'
+        self.websocket_base_url = self.live_server_url.replace('http:', 'ws:', 1) + '/ws/' + self.facility
+        self.message = RedisMessage(''.join(chr(c) for c in range(33, 128)))
         self.factory = RequestFactory()
 
     @classmethod
@@ -33,7 +33,7 @@ class WebsocketTests(LiveServerTestCase):
         audience = {'broadcast': True}
         publisher = RedisPublisher(facility=self.facility, **audience)
         publisher.publish_message(self.message, 10)
-        websocket_url = self.websocket_base_url + u'?subscribe-broadcast'
+        websocket_url = self.websocket_base_url + '?subscribe-broadcast'
         ws = create_connection(websocket_url)
         self.assertTrue(ws.connected)
         result = ws.recv()
@@ -42,7 +42,7 @@ class WebsocketTests(LiveServerTestCase):
         self.assertFalse(ws.connected)
 
     def test_pubsub_broadcast(self):
-        websocket_url = self.websocket_base_url + u'?subscribe-broadcast&publish-broadcast'
+        websocket_url = self.websocket_base_url + '?subscribe-broadcast&publish-broadcast'
         ws = create_connection(websocket_url)
         self.assertTrue(ws.connected)
         ws.send(self.message)
@@ -52,7 +52,7 @@ class WebsocketTests(LiveServerTestCase):
         self.assertFalse(ws.connected)
 
     def test_publish_broadcast(self):
-        websocket_url = self.websocket_base_url + u'?publish-broadcast'
+        websocket_url = self.websocket_base_url + '?publish-broadcast'
         ws = create_connection(websocket_url)
         self.assertTrue(ws.connected)
         ws.send(self.message)
@@ -73,7 +73,7 @@ class WebsocketTests(LiveServerTestCase):
         audience = {'users': ['john', 'mary']}
         publisher = RedisPublisher(request=request, facility=self.facility, **audience)
         publisher.publish_message(self.message, 10)
-        websocket_url = self.websocket_base_url + u'?subscribe-user'
+        websocket_url = self.websocket_base_url + '?subscribe-user'
         header = ['Cookie: sessionid={0}'.format(self.client.cookies['sessionid'].coded_value)]
         ws = create_connection(websocket_url, header=header)
         self.assertTrue(ws.connected)
@@ -85,7 +85,7 @@ class WebsocketTests(LiveServerTestCase):
     def test_publish_user(self):
         logged_in = self.client.login(username='john', password='secret')
         self.assertTrue(logged_in, 'John is not logged in')
-        websocket_url = self.websocket_base_url + u'?publish-user'
+        websocket_url = self.websocket_base_url + '?publish-user'
         header = ['Cookie: sessionid={0}'.format(self.client.cookies['sessionid'].coded_value)]
         ws = create_connection(websocket_url, header=header)
         self.assertTrue(ws.connected)
@@ -109,7 +109,7 @@ class WebsocketTests(LiveServerTestCase):
         audience = {'groups': ['chatters']}
         publisher = RedisPublisher(request=request, facility=self.facility, **audience)
         publisher.publish_message(self.message, 10)
-        websocket_url = self.websocket_base_url + u'?subscribe-group'
+        websocket_url = self.websocket_base_url + '?subscribe-group'
         header = ['Cookie: sessionid={0}'.format(self.client.cookies['sessionid'].coded_value)]
         ws = create_connection(websocket_url, header=header)
         self.assertTrue(ws.connected)
@@ -121,7 +121,7 @@ class WebsocketTests(LiveServerTestCase):
     def test_publish_group(self):
         logged_in = self.client.login(username='john', password='secret')
         self.assertTrue(logged_in, 'John is not logged in')
-        websocket_url = self.websocket_base_url + u'?publish-group'
+        websocket_url = self.websocket_base_url + '?publish-group'
         header = ['Cookie: sessionid={0}'.format(self.client.cookies['sessionid'].coded_value)]
         ws = create_connection(websocket_url, header=header)
         self.assertTrue(ws.connected)
@@ -148,7 +148,7 @@ class WebsocketTests(LiveServerTestCase):
         audience = {'sessions': [SELF]}
         publisher = RedisPublisher(request=request, facility=self.facility, **audience)
         publisher.publish_message(self.message, 10)
-        websocket_url = self.websocket_base_url + u'?subscribe-session'
+        websocket_url = self.websocket_base_url + '?subscribe-session'
         header = ['Cookie: sessionid={0}'.format(session_key)]
         ws = create_connection(websocket_url, header=header)
         self.assertTrue(ws.connected)
@@ -163,7 +163,7 @@ class WebsocketTests(LiveServerTestCase):
         self.assertIsInstance(self.client.session, (dict, SessionStore), 'Did not receive a session key')
         session_key = self.client.session.session_key
         self.assertGreater(len(session_key), 30, 'Session key is too short')
-        websocket_url = self.websocket_base_url + u'?publish-session'
+        websocket_url = self.websocket_base_url + '?publish-session'
         header = ['Cookie: sessionid={0}'.format(session_key)]
         ws = create_connection(websocket_url, header=header)
         self.assertTrue(ws.connected)
@@ -177,7 +177,7 @@ class WebsocketTests(LiveServerTestCase):
         self.assertEqual(result, self.message)
 
     def test_invalid_request(self):
-        websocket_url = self.live_server_url + u'/ws/foobar'
+        websocket_url = self.live_server_url + '/ws/foobar'
         response = requests.get(websocket_url)
         self.assertEqual(response.status_code, 400)
         self.assertIn('upgrade to a websocket', response.content)
@@ -186,7 +186,7 @@ class WebsocketTests(LiveServerTestCase):
 
     def t_e_s_t_invalid_version(self):
         # does not work: websocket library overrides Sec-WebSocket-Version
-        websocket_url = self.websocket_base_url + u'?publish-broadcast'
+        websocket_url = self.websocket_base_url + '?publish-broadcast'
         header = ['Sec-WebSocket-Version: 6']  # Version 6 is not supported
         ws = create_connection(websocket_url, header=header)
         self.assertFalse(ws.connected)
@@ -198,7 +198,7 @@ class WebsocketTests(LiveServerTestCase):
         self.assertEqual(pub2._publishers, set(['ws4redis:user:john:' + self.facility]))
 
     def test_forbidden_channel(self):
-        websocket_url = self.websocket_base_url + u'?subscribe-broadcast&publish-broadcast'
+        websocket_url = self.websocket_base_url + '?subscribe-broadcast&publish-broadcast'
         try:
             create_connection(websocket_url, header=['Deny-Channels: YES'])
             self.fail('Did not reject channels')

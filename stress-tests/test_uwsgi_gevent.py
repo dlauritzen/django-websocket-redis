@@ -12,7 +12,7 @@ def test_simple():
         ws = create_connection(closure['websocket_url'])
         assert ws.connected
         result = ws.recv()
-        print '+',
+        print('+', end=' ')
         tools.eq_(result, 'Hello, World')
         ws.close()
         tools.eq_(ws.connected, False)
